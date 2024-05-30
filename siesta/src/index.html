@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Photon</title>
+
+	<!-- Stylesheets -->
+	<link rel="stylesheet" href="../css/jquery-ui.css">
+	<link rel="stylesheet" href="../css/photon.css">
+	<link rel="stylesheet" href="index.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
+</head>
+
+<body>
+	<div class="window">
+
+		<!-- .toolbar-header sits at the top of your app -->
+		<header class="toolbar toolbar-header">
+			<h1 class="title">SIESTA GUI</h1>
+			<div class="toolbar-controls">
+				<a class="toolbar-btn minimize" href="#" id="min-btn"></a>
+				<a class="toolbar-btn zoom" href="#" id="max-btn"></a>
+				<a class="toolbar-btn close" href="#" id="close-btn"></a>
+			</div>
+		</header>
+		<div class="window-content">
+			<div class="pane-group">
+				<div class="pane-md">
+					<nav class="nav-group tab-controls">
+						<h5 class="nav-group-title ">Navigation</h5>
+						<a class="nav-group-item active" data-tab="configure-tab">
+							<span class="icon icon-home"></span>
+							Configure
+						</a>
+						<a class="nav-group-item" data-tab="visualize-tab">
+							<span class="icon icon-palette"></span>
+							Visualization
+						</a>
+					</nav>
+				</div>
+				<div class="pane">
+					<div class="content">
+						<div class="tab active" id="configure-tab">
+							<form>
+								<div class="form-group static">
+									<label>System Name</label>
+									<input type="text" class="form-control" name="SystemName" id="sysname" value="Water molecule" placeholder="Water molecule">
+								</div>
+								<div class="form-group static">
+									<label>System Label</label>
+									<div style="display: flex; justify-content: space-between;">
+										<input type="text" value="H2O" class="form-control" placeholder="h2o" name="SystemLabel" id="syslabel">
+										<div class="btn btn-default table-add">+</div>
+									</div>
+								</div>
+								<div class="form-group static">
+									<label>Atomic Coordinates Format</label>
+									<select class="form-control" name="AtomicCoordinatesFormat" id="acf">
+										<option value="Ang">Angstrom</option>
+										<option value="Bohr">Bohr</option>
+										<option value="m">Meter</option>
+										<option value="cm">Сentimeter</option>
+										<option value="nm">Nanometer</option>
+									</select>
+								</div>
+								<div class="form-group static">
+									<label>Atomic Coordinates</label>
+									<div id="table" class="table-editable">
+										<table class="table">
+											<tr>
+												<th>X</th>
+												<th>Y</th>
+												<th>Z</th>
+												<th>Atom</th>
+											</tr>
+											<!-- This is our clonable table line -->
+											<tr class="hide">
+												<td contenteditable="true">0.000</td>
+												<td contenteditable="true">0.000</td>
+												<td contenteditable="true">0.000</td>
+												<td class="atomName">0.000</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<div class="form-group ui-widget static">
+									<label>Constants</label>
+									<div style="display: flex; justify-content: space-between;">
+										<input type="text" class="form-control" id="searchConstant" value="" placeholder="Enter search">
+										<div class="btn btn-default constant-add">+</div>
+									</div>
+								</div>
+	
+								<div class="form-actions text-right mt-2 static" id="save-form">
+									<button id="save-btn" class="btn btn-form btn-primary">Save</button>
+								</div>
+								<div class="static"></div>
+							</form>
+						</div>
+						<div class="tab" id="visualize-tab">
+							<div id="gui"></div>
+								
+								<div class="form-group static">
+									<div id="controls">
+										<div id="element-panel">
+											<div class="element-button" data-element="H">H</div>
+											<div class="element-button" data-element="C">C</div>
+											<div class="element-button" data-element="O">O</div>
+											<div class="element-button" data-element="N">N</div>
+											<div class="element-button" data-element="S">S</div>
+										</div>
+										<button id="mode-add-atom">Add Atom</button>
+										<button id="mode-delete">Delete</button>
+										<button id="configure-elements">Configure Elements</button>
+									</div>
+									<div id="additional-elements-panel"></div>
+									<div>
+										<canvas id="canvas"></canvas>
+									</div>
+									<script type="module" src="./script.js"></script>
+								
+							</div>
+							
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="js/jquery-3.6.0.js"></script>
+	<script src="js/jquery-ui.min.js"></script>
+	<script src="js/jquery.ui.autocomplete.scroll.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
+	<script src="../node_modules/chemical-formula/index.js"></script>
+	<script src="js/siesta.js"></script>
+	<script>
+		require("./renderer.js");
+	</script>
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="text/javascript" src="./js/dat.gui.min.js"></script>
+    <script type="text/javascript" src="./js/Projector.js"></script>
+	<script src="js/sceneviewer.js"></script>-->
+</body>
+
+</html>

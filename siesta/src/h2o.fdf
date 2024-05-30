@@ -1,0 +1,22 @@
+SystemName			Water molecule
+SystemLabel			H2O
+NumberOfAtoms			3
+NumberOfSpecies			2
+AtomicCoordinatesFormat			Angstrom
+
+%block ChemicalSpeciesLabel
+1  1  H
+2  8  O
+%endblock ChemicalSpeciesLabel
+
+AtomicCoordinatesFormat			Angstrom
+%block AtomicCoordinatesAndAtomicSpecies
+%endblock AtomicCoordinatesAndAtomicSpecies
+
+WriteBands			true
+
+# this block is used for ...
+# das
+# dsa
+WriteForces			true
+WriteCoorXmol			false
