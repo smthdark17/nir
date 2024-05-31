@@ -66,23 +66,29 @@
 								<div class="form-group static">
 									<label>Atomic Coordinates</label>
 									<div id="table" class="table-editable">
-										<table class="table">
-											<tr>
-												<th>X</th>
-												<th>Y</th>
-												<th>Z</th>
-												<th>Atom</th>
-											</tr>
-											<!-- This is our clonable table line -->
-											<tr class="hide">
-												<td contenteditable="true">0.000</td>
-												<td contenteditable="true">0.000</td>
-												<td contenteditable="true">0.000</td>
-												<td class="atomName">0.000</td>
-											</tr>
+										<table id="coordinates-table" class="table">
+											<thead>
+												<tr>
+													<th>X</th>
+													<th>Y</th>
+													<th>Z</th>
+													<th>Atom</th>
+												</tr>
+											</thead>
+											<tbody>
+												<!-- This is our clonable table line -->
+												<tr class="hide">
+													<td contenteditable="true">0.000</td>
+													<td contenteditable="true">0.000</td>
+													<td contenteditable="true">0.000</td>
+													<td contenteditable="true" class="atomName">H</td>
+												</tr>
+											</tbody>
 										</table>
 									</div>
+									<div class="btn btn-default table-add" id="submit-button">Submit</div>
 								</div>
+									
 
 								<div class="form-group ui-widget static">
 									<label>Constants</label>
@@ -113,6 +119,10 @@
 										<button id="mode-add-atom">Add Atom</button>
 										<button id="mode-delete">Delete</button>
 										<button id="configure-elements">Configure Elements</button>
+										<button id="clear-scene">Clear</button>
+										<label for="coordinate-scale-input">Coordinate Scale:</label>
+    									<input type="number" id="coordinate-scale-input" value="0.05" step="0.01" min="0.01" max="1.0">
+    									<button id="apply-coordinate-scale">Apply</button>
 									</div>
 									<div id="additional-elements-panel"></div>
 									<div>

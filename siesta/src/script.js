@@ -31,7 +31,7 @@ function init() {
     const canvas = document.querySelector('#canvas');
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 20;
+    camera.position.z = 2; // Уменьшите, если необходимо
 
     renderer = new THREE.WebGLRenderer({ canvas });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,7 +39,7 @@ function init() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.addEventListener('change', updatePlane);
 
-    atomGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+    atomGeometry = new THREE.SphereGeometry(0.05, 32, 32); // Уменьшенный размер атомов
 
     window.addEventListener('resize', onWindowResize, false);
     canvas.addEventListener('dblclick', onCanvasDblClick);
@@ -78,7 +78,30 @@ function updatePlane() {
     plane = new THREE.Plane(normal, -camera.position.distanceTo(new THREE.Vector3()));
 }
 
-const ATOM_DISTANCE_FROM_CAMERA = 25; // Расстояние атомов относительно камеры
+const ATOM_DISTANCE_FROM_CAMERA = 1.5; // Оставляем текущее значение
+let COORDINATE_SCALE = 0.05; // Новая константа для масштабирования координат
+
+
+//меняем скейл как нужно пользователю 
+// Получаем элементы управления
+const coordinateScaleInput = document.getElementById('coordinate-scale-input');
+const applyCoordinateScaleBtn = document.getElementById('apply-coordinate-scale');
+
+// Обработчик для кнопки "Apply"
+applyCoordinateScaleBtn.addEventListener('click', function() {
+    // Получаем новое значение из поля ввода
+    const newScale = parseFloat(coordinateScaleInput.value);
+    
+    // Проверяем, что значение находится в допустимом диапазоне
+    if (newScale >= 0.01 && newScale <= 1.0) {
+        // Обновляем значение переменной COORDINATE_SCALE
+        COORDINATE_SCALE = newScale;
+        console.log("New coordinate scale applied: ", COORDINATE_SCALE);
+    } else {
+        console.error("Invalid coordinate scale value. It should be between 0.01 and 1.0.");
+    }
+});
+
 
 function onCanvasDblClick(event) {
     if (mode !== 'addAtom') return;
@@ -96,14 +119,14 @@ function onCanvasDblClick(event) {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
 
-    // Find intersection point with the plane parallel to the screen
+    // Найдите точку пересечения с плоскостью параллельной экрану
     const intersection = new THREE.Vector3();
     raycaster.ray.intersectPlane(plane, intersection);
 
-    // Find the direction from camera to intersection point
+    // Найдите направление от камеры к точке пересечения
     const cameraToIntersection = intersection.clone().sub(camera.position).normalize();
 
-    // Place the atom in front of the camera, but not too close
+    // Разместите атом перед камерой, но не слишком близко
     const newPosition = camera.position.clone().add(cameraToIntersection.multiplyScalar(ATOM_DISTANCE_FROM_CAMERA));
 
     const atom = new THREE.Mesh(atomGeometry, atomMaterial);
@@ -111,6 +134,32 @@ function onCanvasDblClick(event) {
     atom.userData = { element: currentElement };
     scene.add(atom);
     atoms.push(atom);
+
+    // Масштабирование координат перед добавлением в таблицу
+    const scaledPosition = {
+        x: newPosition.x * COORDINATE_SCALE,
+        y: newPosition.y * COORDINATE_SCALE,
+        z: newPosition.z * COORDINATE_SCALE,
+    };
+
+    updateChemicalFormula();
+    updateAtomicCoordinatesTable();
+}
+   
+
+function addAtomToTable(element, position) {
+    const table = document.getElementById('coordinates-table');
+    const newRow = table.insertRow();
+
+    const cellX = newRow.insertCell(0);
+    const cellY = newRow.insertCell(1);
+    const cellZ = newRow.insertCell(2);
+    const cellElement = newRow.insertCell(3);
+
+    cellX.innerText = position.x.toFixed(3);
+    cellY.innerText = position.y.toFixed(3);
+    cellZ.innerText = position.z.toFixed(3);
+    cellElement.innerText = element;
 }
 
 function onCanvasClick(event) {
@@ -124,22 +173,10 @@ function onCanvasClick(event) {
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(atoms);
 
-    if (mode === 'addAtom' && intersects.length > 0) {
-        if (selectedAtom === null) {
-            selectedAtom = intersects[0].object;
-        } else {
-            const bondGeometry = new THREE.BufferGeometry().setFromPoints([selectedAtom.position, intersects[0].object.position]);
-            const bondMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-            const bond = new THREE.Line(bondGeometry, bondMaterial);
-            scene.add(bond);
-            bonds.push({ atom1: selectedAtom, atom2: intersects[0].object, bond: bond });
-            selectedAtom = null;
-        }
-    } else if (mode === 'delete' && intersects.length > 0) {
+    if (mode === 'delete' && intersects.length > 0) {
         const atom = intersects[0].object;
         scene.remove(atom);
         atoms = atoms.filter(a => a !== atom);
-        selectedAtom = null;
 
         // Удаление связей, в которых участвует удаленный атом
         bonds = bonds.filter(bondData => {
@@ -149,9 +186,11 @@ function onCanvasClick(event) {
             }
             return true; // Оставляем связь в массиве bonds
         });
+
+        updateChemicalFormula();
+        updateAtomicCoordinatesTable();
     }
 }
-
 
 
 function toggleConfigureElementsPanel() {
@@ -236,3 +275,115 @@ function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
 }
+document.getElementById('submit-button').addEventListener('click', handleFormSubmit);
+
+function handleFormSubmit() {
+    const systemLabel = document.getElementById('syslabel').value;
+    const table = document.getElementById('coordinates-table');
+    const atomsData = parseAtomicCoordinates(systemLabel, table);
+    visualizeAtoms(atomsData);
+}
+
+function parseAtomicCoordinates(systemLabel, table) {
+    const rows = table.querySelectorAll('tr:not(.hide)'); // Исключаем скрытую строку-шаблон
+    const atoms = [];
+    
+    rows.forEach(row => {
+        const cells = row.children;
+        const x = parseFloat(cells[0].innerText);
+        const y = parseFloat(cells[1].innerText);
+        const z = parseFloat(cells[2].innerText);
+        const element = cells[3].innerText;
+        
+        atoms.push({ element, position: { x, y, z } });
+    });
+
+    return atoms;
+}
+
+function visualizeAtoms(atomsData) {
+    // Очистка предыдущих атомов и связей
+    atoms.forEach(atom => scene.remove(atom));
+    bonds.forEach(bondData => scene.remove(bondData.bond));
+    atoms = [];
+    bonds = [];
+
+    atomsData.forEach(atomData => {
+        const color = elementColors[atomData.element] || 0xffffff;
+        const material = new THREE.MeshBasicMaterial({ color });
+        const atom = new THREE.Mesh(atomGeometry, material);
+        atom.position.set(atomData.position.x, atomData.position.y, atomData.position.z);
+        atom.userData = { element: atomData.element };
+        scene.add(atom);
+        atoms.push(atom);
+    });
+
+    renderer.render(scene, camera);
+}
+const templateRow = document.querySelector('#coordinates-table .hide').cloneNode(true);
+//очистка сцены 
+document.getElementById('clear-scene').addEventListener('click', () => {
+    // Очистка сцены
+    atoms.forEach(atom => scene.remove(atom));
+    bonds.forEach(bondData => scene.remove(bondData.bond));
+    atoms = [];
+    bonds = [];
+
+    // Очистка таблицы
+    const tableBody = document.querySelector('#coordinates-table tbody');
+    tableBody.innerHTML = ''; // Удаляем все строки, кроме заголовка
+
+    // Показываем шаблонную строку перед добавлением
+    const clonedRow = templateRow.cloneNode(true);
+    clonedRow.classList.remove('hide');
+    tableBody.appendChild(clonedRow);
+});
+
+//обновление формулы
+function updateChemicalFormula() {
+    const elementCounts = atoms.reduce((counts, atom) => {
+        const element = atom.userData.element;
+        counts[element] = (counts[element] || 0) + 1;
+        return counts;
+    }, {});
+
+    const formula = Object.entries(elementCounts)
+        .map(([element, count]) => count > 1 ? `${element}${count}` : element)
+        .join('');
+
+    document.getElementById('syslabel').value = formula;
+}
+
+function updateAtomicCoordinatesTable() {
+    const tableBody = document.querySelector('#coordinates-table tbody');
+    tableBody.innerHTML = ''; // Удаляем все строки
+
+    atoms.forEach(atom => {
+        const row = document.createElement('tr');
+        const xCell = document.createElement('td');
+        const yCell = document.createElement('td');
+        const zCell = document.createElement('td');
+        const atomCell = document.createElement('td');
+
+        xCell.textContent = atom.position.x.toFixed(3);
+        yCell.textContent = atom.position.y.toFixed(3);
+        zCell.textContent = atom.position.z.toFixed(3);
+        atomCell.textContent = atom.userData.element;
+
+        row.appendChild(xCell);
+        row.appendChild(yCell);
+        row.appendChild(zCell);
+        row.appendChild(atomCell);
+        tableBody.appendChild(row);
+    });
+}
+
+// Добавляем обработчик для кнопки очистки
+document.getElementById('clear-scene').addEventListener('click', () => {
+    atoms.forEach(atom => scene.remove(atom));
+    bonds.forEach(bondData => scene.remove(bondData.bond));
+    atoms = [];
+    bonds = [];
+    updateChemicalFormula();
+    updateAtomicCoordinatesTable();
+});

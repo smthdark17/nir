@@ -39,6 +39,8 @@ document.querySelectorAll('.tab:not(.active)').forEach(function(tab) {
     tab.style.display = 'none';
 });
 
+const templateRow = document.querySelector('#coordinates-table .hide').cloneNode(true);
+
 // Добавление обработчика события для кнопки "Добавить" в таблице
 tableAddBtn.addEventListener('click', function() {
     try {
@@ -55,7 +57,7 @@ tableAddBtn.addEventListener('click', function() {
 
     for (var element in formula) {
         for (var i = 0; i < formula[element]; i++) {
-            var clone = table.querySelector('.hide').cloneNode(true);
+            var clone = templateRow.cloneNode(true); // Используем сохраненную шаблонную строку
             clone.classList.remove('hide', 'table-line');
             clone.classList.add('XYZ');
             clone.querySelector('.atomName').textContent = element;
